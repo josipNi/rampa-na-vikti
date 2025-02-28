@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+    <title>QR Code DateTime</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #qrcode {
+            margin-top: 20px;
+        }
+        #timestamp {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Skeniraj.me</h2>
+    <div id="qrcode"></div>
+    <div id="timestamp"></div>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker Registered'))
+                .catch(err => console.log('Service Worker Registration Failed', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            let deferredPrompt = e;
+            let installButton = document.createElement('button');
+            installButton.textContent = 'Install App';
+            installButton.style.display = 'block';
+            installButton.onclick = () => {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(choice => {
+                    if (choice.outcome === 'accepted') {
+                        console.log('User installed the app');
+                    }
+                    deferredPrompt = null;
+                });
+            };
+            document.body.appendChild(installButton);
+        });
+
+        function getCroatianTime() {
+            let now = new Date();
+            let baseYear = 2015;
+            let currentYear = now.getFullYear();
+            let adjustedYear = (currentYear - 10);
+            let formattedYear = adjustedYear.toString().slice(-2); // Extract last two digits
+            
+            let croatiaTime = new Intl.DateTimeFormat('hr-HR', { 
+                timeZone: 'Europe/Zagreb', 
+                hour12: false, 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).format(now);
+            
+            croatiaTime = croatiaTime.replace(/\D/g, ''); // Remove non-numeric characters
+            let finalTime = formattedYear + croatiaTime + 'A'; // Append 'A' at the end
+            return finalTime;
+        }
+
+        function updateQRCode() {
+            let timeString = getCroatianTime();
+            document.getElementById("qrcode").innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: timeString,
+                width: 250,
+                height: 250
+            });
+            document.getElementById("timestamp").textContent = timeString;
+        }
+
+        updateQRCode();
+        setInterval(updateQRCode, 5 * 60 * 1000); // Refresh every 5 minutes
+    </script>
+</body>
+</html>
