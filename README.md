@@ -1,1 +1,1 @@
-(https://josipni.github.io/rampa-na-vikti/)[web]
+(WEB)[https://josipni.github.io/rampa-na-vikti]
